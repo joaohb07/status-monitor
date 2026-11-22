@@ -48,12 +48,12 @@ describe('Home-Lab Status Monitor API & Telemetry', () => {
     assert.deepEqual(containers, []);
   });
 
-  it('exposes /api/status with CORS restricted to GitHub Pages documentation', async () => {
+  it('exposes /api/status with CORS enabled for public read access', async () => {
     const res = await fetch(`${baseUrl}/api/status`);
     const body = await res.json();
 
     assert.equal(res.status, 200);
-    assert.equal(res.headers.get('access-control-allow-origin'), 'https://joaohb07.github.io');
+    assert.equal(res.headers.get('access-control-allow-origin'), '*');
     assert.ok(typeof body.timestamp === 'string');
     assert.ok(Array.isArray(body.containers));
     assert.equal(body.probes.length, 3);
