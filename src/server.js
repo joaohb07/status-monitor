@@ -9,14 +9,22 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-export async function getGpuMetrics(runCommand = execFileAsync) {
+export async function getGpuMetrics(runCommand = execFileAsync, telemetryFile = '/tmp/gpu-telemetry.json') {
   try {
-    const { stdout } = await runCommand('nvidia-smi', [
-      '--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu',
-      '--format=csv,noheader,nounits',
-    ], { timeout: 2000 });
+    let rawOutput = '';
+    if (fs.existsSync(telemetryFile)) {
+      rawOutput = fs.readFileSync(telemetryFile, 'utf8');
+    } else {
+      const { stdout } = await runCommand('nvidia-smi', [
+        '--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu',
+        '--format=csv,noheader,nounits',
+      ], { timeout: 2000 });
+      rawOutput = stdout;
+    }
 
-    const [name, util, memUsed, memTotal, temp] = stdout.trim().split(',').map((s) => s.trim());
+    const [name, util, memUsed, memTotal, temp] = rawOutput.trim().split(',').map((s) => s.trim());
+    if (!name) return { available: false };
+
     return {
       available: true,
       name,

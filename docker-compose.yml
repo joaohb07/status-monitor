@@ -10,13 +10,7 @@ services:
       - "977"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [utility]
+      - /run/gpu-telemetry.json:/tmp/gpu-telemetry.json:ro
     networks:
       - global-proxy
 

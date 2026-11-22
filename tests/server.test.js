@@ -1,5 +1,8 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   app,
   getHostMetrics,
@@ -58,12 +61,31 @@ describe('Home-Lab Status Monitor API, Assets & Telemetry', () => {
     assert.ok(host.memory.percent >= 0 && host.memory.percent <= 100);
   });
 
-  it('parses nvidia-smi CSV output accurately when GPU is available', async () => {
+  it('reads GPU metrics from the mounted telemetry file when present', async () => {
+    const tempFile = path.join(os.tmpdir(), `gpu-telemetry-test-${Date.now()}.json`);
+    fs.writeFileSync(tempFile, 'NVIDIA GeForce GTX 1060 3GB, 15, 420, 3072, 51\n', 'utf8');
+
+    try {
+      const gpu = await getGpuMetrics(undefined, tempFile);
+      assert.deepEqual(gpu, {
+        available: true,
+        name: 'NVIDIA GeForce GTX 1060 3GB',
+        utilizationPercent: 15,
+        memoryUsedMb: 420,
+        memoryTotalMb: 3072,
+        tempC: 51,
+      });
+    } finally {
+      fs.rmSync(tempFile, { force: true });
+    }
+  });
+
+  it('parses nvidia-smi CSV output accurately when telemetry file is absent', async () => {
     const mockRunner = async () => ({
       stdout: 'NVIDIA GeForce GTX 1060 3GB, 24, 512, 3072, 48\n',
     });
 
-    const gpu = await getGpuMetrics(mockRunner);
+    const gpu = await getGpuMetrics(mockRunner, '/tmp/non-existent-gpu.json');
     assert.deepEqual(gpu, {
       available: true,
       name: 'NVIDIA GeForce GTX 1060 3GB',
@@ -74,12 +96,12 @@ describe('Home-Lab Status Monitor API, Assets & Telemetry', () => {
     });
   });
 
-  it('falls back gracefully when nvidia-smi is unavailable', async () => {
+  it('falls back gracefully when both telemetry file and nvidia-smi are unavailable', async () => {
     const failingRunner = async () => {
       throw new Error('spawn nvidia-smi ENOENT');
     };
 
-    const gpu = await getGpuMetrics(failingRunner);
+    const gpu = await getGpuMetrics(failingRunner, '/tmp/non-existent-gpu.json');
     assert.deepEqual(gpu, { available: false });
   });
 
