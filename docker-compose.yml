@@ -1,0 +1,18 @@
+services:
+  status-monitor:
+    build: .
+    container_name: status-monitor
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    group_add:
+      - "977"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - global-proxy
+
+networks:
+  global-proxy:
+    external: true
