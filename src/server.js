@@ -4,6 +4,31 @@ import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
+
+export async function getGpuMetrics(runCommand = execFileAsync) {
+  try {
+    const { stdout } = await runCommand('nvidia-smi', [
+      '--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu',
+      '--format=csv,noheader,nounits',
+    ], { timeout: 2000 });
+
+    const [name, util, memUsed, memTotal, temp] = stdout.trim().split(',').map((s) => s.trim());
+    return {
+      available: true,
+      name,
+      utilizationPercent: Number(util),
+      memoryUsedMb: Number(memUsed),
+      memoryTotalMb: Number(memTotal),
+      tempC: Number(temp),
+    };
+  } catch {
+    return { available: false };
+  }
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const app = express();
@@ -108,6 +133,7 @@ app.get('/api/status', async (_req, res) => {
   res.json({
     timestamp: new Date().toISOString(),
     host: getHostMetrics(),
+    gpu: await getGpuMetrics(),
     containers,
     probes,
   });
