@@ -41,7 +41,7 @@ flowchart TD
     Monitor --> HardenedContainer
     API -.->|"Read-Only Mount (:ro)"| Sock["🔌 /var/run/docker.sock"]
     API -.->|"Kernel Telemetry"| Proc["📊 /proc & /sys/class/thermal"]
-    API -.->|"Internal HTTP Probes"| Apps["📦 task-app / weather-app / NPM"]
+    API -.->|"Internal HTTP Probes"| Apps["📦 E.g.: 'task-app / weather-app / NPM'"]
 ```
 
 * **Zero-Dependency Docker Engine Client:** Queries `/containers/json?all=1` directly over the Unix domain socket using Node's native `node:http` module—eliminating heavy third-party SDKs.
