@@ -9,10 +9,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Permite que o seu portal MkDocs (GitHub Pages) consulte /api/status via JS
 app.use('/api', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://joaohb07.github.io');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   next();
 });
 
