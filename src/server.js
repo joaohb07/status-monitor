@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Permite que o seu portal MkDocs (GitHub Pages) consulte /api/status via JS
@@ -16,10 +16,10 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-function getDockerContainers() {
+export function getDockerContainers(socketPath = '/var/run/docker.sock') {
   return new Promise((resolve) => {
     const req = http.request(
-      { socketPath: '/var/run/docker.sock', path: '/containers/json?all=1', method: 'GET' },
+      { socketPath, path: '/containers/json?all=1', method: 'GET' },
       (res) => {
         let data = '';
         res.on('data', (chunk) => (data += chunk));
@@ -46,7 +46,7 @@ function getDockerContainers() {
   });
 }
 
-async function probeEndpoint(name, url, publicPath = null) {
+export async function probeEndpoint(name, url, publicPath = null) {
   const start = performance.now();
   try {
     const controller = new AbortController();
@@ -66,7 +66,7 @@ async function probeEndpoint(name, url, publicPath = null) {
   }
 }
 
-function getHostMetrics() {
+export function getHostMetrics() {
   const totalMem = os.totalmem();
   const freeMem = os.freemem();
   const usedMem = totalMem - freeMem;
@@ -110,4 +110,6 @@ app.get('/api/status', async (_req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log(`Status Monitor running on port ${PORT}`));
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  app.listen(PORT, () => console.log(`Status Monitor running on port ${PORT}`));
+}
