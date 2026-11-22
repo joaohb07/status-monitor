@@ -1,0 +1,167 @@
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: #161616;
+  color: #f4f4f4;
+  margin: 0;
+  padding: 2rem;
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #393939;
+  padding-bottom: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.sub {
+  color: #a8a8a8;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #f4f4f4;
+  background: #262626;
+  border: 1px solid #393939;
+  padding: 0.5rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.nav-links a:hover {
+  border-color: #78a9ff;
+  background: #333333;
+}
+
+.nav-links a.primary {
+  background: #0f62fe;
+  border-color: #0f62fe;
+}
+
+.nav-links a.primary:hover {
+  background: #0353e9;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: #262626;
+  border: 1px solid #393939;
+  padding: 1.25rem;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-desc {
+  font-size: 0.78rem;
+  color: #8d8d8d;
+  margin-top: 0.6rem;
+  line-height: 1.35;
+}
+
+.label {
+  font-size: 0.72rem;
+  color: #a8a8a8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.value {
+  font-size: 1.55rem;
+  font-weight: 500;
+  margin-top: 0.4rem;
+}
+
+h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #c6c6c6;
+  margin-bottom: 0.75rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #262626;
+  margin-bottom: 2rem;
+  border: 1px solid #393939;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #393939;
+  font-size: 0.9rem;
+}
+
+th {
+  background: #1f1f1f;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #a8a8a8;
+}
+
+td a {
+  color: #78a9ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+td a:hover {
+  text-decoration: underline;
+}
+
+.route-internal {
+  color: #8d8d8d;
+}
+
+.image-cell {
+  font-family: monospace;
+  font-size: 0.82rem;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.up {
+  background: #0e6027;
+  color: #a7f0ba;
+}
+
+.down {
+  background: #750e13;
+  color: #ffb3b8;
+}
