@@ -107,6 +107,12 @@ describe('Home-Lab Status Monitor API, Assets & Telemetry', () => {
     assert.equal(telemetryHistory[0].memoryPercent, 18);
   });
 
+  it('does not duplicate history points across concurrent /api/status requests', async () => {
+    telemetryHistory.length = 0;
+    await Promise.all([fetch(`${baseUrl}/api/status`), fetch(`${baseUrl}/api/status`)]);
+    assert.equal(telemetryHistory.length, 1);
+  });
+
   it('fetches and parses latest GitHub Actions workflow runs with caching', async () => {
     const mockFetch = async (url) => ({
       ok: true,
@@ -158,7 +164,7 @@ describe('Home-Lab Status Monitor API, Assets & Telemetry', () => {
   });
 
   it('returns empty array when Docker socket is unavailable', async () => {
-    const containers = await getDockerContainers('/tmp/non-existent-docker.sock');
+    const containers = await getDockerContainers('/tmp/non-existent-docker.sock', true);
     assert.deepEqual(containers, []);
   });
 
