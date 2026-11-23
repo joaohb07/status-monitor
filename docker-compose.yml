@@ -4,6 +4,7 @@ services:
     container_name: status-monitor
     restart: unless-stopped
     read_only: true
+    mem_limit: 96m
     security_opt:
       - no-new-privileges:true
     group_add:

@@ -17,6 +17,9 @@ const PORT = process.env.PORT || 3000;
 const MAX_HISTORY_POINTS = 60;
 export const telemetryHistory = [];
 
+// Short-lived cache (2s) for Docker container stats to avoid redundant socket reads across clients
+let containerCache = { expiresAt: 0, data: [] };
+
 // In-memory cache for GitHub Actions workflow runs (60s TTL to respect rate limits)
 let deployCache = { expiresAt: 0, data: {} };
 
@@ -140,12 +143,17 @@ export function calculateContainerStats(stats) {
   return { cpuPercent, memoryMb };
 }
 
-export async function getDockerContainers(socketPath = '/var/run/docker.sock') {
+export async function getDockerContainers(socketPath = '/var/run/docker.sock', forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && socketPath === '/var/run/docker.sock' && containerCache.expiresAt > now) {
+    return containerCache.data;
+  }
+
   try {
     const parsed = await dockerSocketGet(socketPath, '/containers/json?all=1');
     if (!Array.isArray(parsed)) return [];
 
-    return await Promise.all(
+    const containers = await Promise.all(
       parsed.map(async (c) => {
         const id = c.Id.slice(0, 12);
         const name = c.Names[0]?.replace(/^\//, '');
@@ -175,6 +183,11 @@ export async function getDockerContainers(socketPath = '/var/run/docker.sock') {
         };
       })
     );
+
+    if (socketPath === '/var/run/docker.sock') {
+      containerCache = { expiresAt: now + 2000, data: containers };
+    }
+    return containers;
   } catch {
     return [];
   }
@@ -236,7 +249,7 @@ export async function getLatestDeploys(fetchFn = fetch, forceRefresh = false) {
           {
             repo: `${owner}/${repo}`,
             sha: run.head_sha?.slice(0, 7) || null,
-            conclusion: run.conclusion || run.status, // e.g., 'success', 'failure', 'in_progress'
+            conclusion: run.conclusion || run.status,
             htmlUrl: run.html_url,
             updatedAt: run.updated_at,
           },
@@ -293,7 +306,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/api/status', async (_req, res) => {
   const host = getHostMetrics();
-  const history = recordHistorySample(host);
+
+  // Seed initial sample only if buffer is empty (e.g. during isolated API tests)
+  if (telemetryHistory.length === 0) {
+    recordHistorySample(host);
+  }
 
   const [gpu, containers, probes, deploys] = await Promise.all([
     getGpuMetrics(),
@@ -320,7 +337,7 @@ app.get('/api/status', async (_req, res) => {
     timestamp: new Date().toISOString(),
     host,
     gpu,
-    history,
+    history: telemetryHistory,
     deploys,
     containers: enrichedContainers,
     probes: enrichedProbes,
@@ -328,8 +345,7 @@ app.get('/api/status', async (_req, res) => {
 });
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const initialHost = getHostMetrics();
-  recordHistorySample(initialHost);
+  recordHistorySample(getHostMetrics());
   setInterval(() => {
     recordHistorySample(getHostMetrics());
   }, 5000).unref();
